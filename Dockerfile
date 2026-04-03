@@ -1,6 +1,6 @@
 FROM php:8.2-cli
 
-ARG CACHE_BUST=7
+ARG CACHE_BUST=8
 
 RUN apt-get update && apt-get install -y \
     curl zip unzip git \
@@ -16,7 +16,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN chmod +x artisan \
+RUN chmod +x artisan start.sh \
     && mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
     && cp .env.example .env \
     && composer install --no-dev --optimize-autoloader --no-scripts \
@@ -24,4 +24,4 @@ RUN chmod +x artisan \
     && php artisan key:generate --force \
     && php artisan storage:link
 
-CMD php artisan migrate --force --seed && php -S 0.0.0.0:${PORT:-8080} -t public
+CMD ["/bin/sh", "/app/start.sh"]
