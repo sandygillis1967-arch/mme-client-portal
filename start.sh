@@ -22,9 +22,21 @@ FILESYSTEM_DISK=local
 NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL:-creative@mmedigital.ca}
 ENVEOF
 
-echo "=== Updating Apache port to $PORT ==="
-sed -i "s|Listen 80|Listen ${PORT:-80}|g" /etc/apache2/ports.conf
-sed -i "s|:80>|:${PORT:-80}>|g" /etc/apache2/sites-available/000-default.conf
+echo "=== PORT is: $PORT ==="
+
+echo "=== Configuring Apache port ==="
+echo "Listen ${PORT:-80}" > /etc/apache2/ports.conf
+cat > /etc/apache2/sites-available/000-default.conf << APACHEEOF
+<VirtualHost *:${PORT:-80}>
+    DocumentRoot /var/www/html/public
+    <Directory /var/www/html/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog /dev/stderr
+    CustomLog /dev/stdout combined
+</VirtualHost>
+APACHEEOF
 
 echo "=== Running migrations ==="
 cd /var/www/html && php artisan config:clear && php artisan migrate --force
