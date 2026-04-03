@@ -1,6 +1,6 @@
 FROM php:8.2-cli
 
-ARG CACHE_BUST=2
+ARG CACHE_BUST=3
 
 RUN apt-get update && apt-get install -y \
     curl zip unzip git \
@@ -16,7 +16,10 @@ WORKDIR /app
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader \
+RUN chmod +x artisan \
+    && mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
+    && composer install --no-dev --optimize-autoloader --no-scripts \
+    && php artisan package:discover --ansi \
     && php artisan key:generate --force \
     && php artisan storage:link
 
