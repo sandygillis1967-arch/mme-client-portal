@@ -1,6 +1,6 @@
 FROM php:8.2-cli
 
-ARG CACHE_BUST=4
+ARG CACHE_BUST=5
 
 RUN apt-get update && apt-get install -y \
     curl zip unzip git \
@@ -26,7 +26,8 @@ RUN chmod +x artisan \
 
 EXPOSE 8080
 
-CMD php artisan migrate --force \
+CMD php artisan config:clear \
+    && php artisan migrate --force --seed \
     && php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache \
