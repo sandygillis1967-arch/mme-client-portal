@@ -1,11 +1,8 @@
-#!/bin/sh
-echo "=== CONTAINER STARTED ==="
-echo "PORT=$PORT"
-echo "DB_HOST=$DB_HOST"
-echo "APP_KEY=$APP_KEY"
+#!/bin/bash
+set -e
 
-# Write .env
-cat > /app/.env << ENVEOF
+echo "=== Writing .env ==="
+cat > /var/www/html/.env << ENVEOF
 APP_NAME="MME Client Portal"
 APP_ENV=production
 APP_KEY=$APP_KEY
@@ -22,10 +19,15 @@ CACHE_DRIVER=array
 QUEUE_CONNECTION=sync
 SESSION_DRIVER=cookie
 FILESYSTEM_DISK=local
+NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL:-creative@mmedigital.ca}
 ENVEOF
 
-echo "=== .env written ==="
-php artisan config:clear
-php artisan migrate --force
-echo "=== Starting server on $PORT ==="
-php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
+echo "=== Updating Apache port to $PORT ==="
+sed -i "s|Listen 80|Listen ${PORT:-80}|g" /etc/apache2/ports.conf
+sed -i "s|:80>|:${PORT:-80}>|g" /etc/apache2/sites-available/000-default.conf
+
+echo "=== Running migrations ==="
+cd /var/www/html && php artisan config:clear && php artisan migrate --force
+
+echo "=== Starting Apache ==="
+exec apache2-foreground
