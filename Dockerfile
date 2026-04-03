@@ -1,6 +1,6 @@
 FROM php:8.2-cli
 
-ARG CACHE_BUST=6
+ARG CACHE_BUST=7
 
 RUN apt-get update && apt-get install -y \
     curl zip unzip git \
@@ -24,6 +24,4 @@ RUN chmod +x artisan \
     && php artisan key:generate --force \
     && php artisan storage:link
 
-EXPOSE 8080
-
-CMD php artisan migrate --force --seed && php -S 0.0.0.0:8080 -t public
+CMD php artisan migrate --force --seed && php -S 0.0.0.0:${PORT:-8080} -t public
