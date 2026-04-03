@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Write .env from Railway environment variables
 cat > /var/www/html/.env << ENVEOF
 APP_NAME="MME Client Portal"
 APP_ENV=production
@@ -18,12 +17,11 @@ CACHE_DRIVER=array
 QUEUE_CONNECTION=sync
 SESSION_DRIVER=cookie
 FILESYSTEM_DISK=local
-NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL:-creative@mmedigital.ca}
 ENVEOF
 
 cd /var/www/html
 php artisan config:clear
 php artisan migrate --force
 
-# Run PHP built-in server directly - no Apache
-php -S 0.0.0.0:${PORT:-80} public/index.php
+echo "Starting server on port ${PORT:-80}"
+php -S 0.0.0.0:${PORT:-80} -t public
