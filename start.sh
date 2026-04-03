@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 echo "=== Writing .env ==="
 cat > /var/www/html/.env << ENVEOF
@@ -8,7 +7,7 @@ APP_ENV=production
 APP_KEY=$APP_KEY
 APP_DEBUG=true
 APP_URL=$APP_URL
-LOG_CHANNEL=errorlog
+LOG_CHANNEL=stderr
 DB_CONNECTION=mysql
 DB_HOST=$DB_HOST
 DB_PORT=${DB_PORT:-3306}
@@ -22,10 +21,20 @@ FILESYSTEM_DISK=local
 NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL:-creative@mmedigital.ca}
 ENVEOF
 
-echo "=== PORT is: $PORT ==="
+echo "=== .env written ==="
+echo "=== PORT=$PORT ==="
 
-echo "=== Configuring Apache port ==="
+cd /var/www/html
+
+echo "=== Clearing config ==="
+php artisan config:clear 2>&1
+
+echo "=== Running migrations ==="
+php artisan migrate --force 2>&1
+
+echo "=== Configuring Apache ==="
 echo "Listen ${PORT:-80}" > /etc/apache2/ports.conf
+
 cat > /etc/apache2/sites-available/000-default.conf << APACHEEOF
 <VirtualHost *:${PORT:-80}>
     DocumentRoot /var/www/html/public
@@ -38,8 +47,8 @@ cat > /etc/apache2/sites-available/000-default.conf << APACHEEOF
 </VirtualHost>
 APACHEEOF
 
-echo "=== Running migrations ==="
-cd /var/www/html && php artisan config:clear && php artisan migrate --force
+echo "=== Testing Apache config ==="
+apache2ctl configtest 2>&1
 
 echo "=== Starting Apache ==="
-exec apache2-foreground
+apache2ctl -D FOREGROUND 2>&1
