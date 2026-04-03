@@ -1,43 +1,31 @@
 #!/bin/sh
-set -e
+echo "=== CONTAINER STARTED ==="
+echo "PORT=$PORT"
+echo "DB_HOST=$DB_HOST"
+echo "APP_KEY=$APP_KEY"
 
-echo "Generating .env..."
-cat > /app/.env << EOF
+# Write .env
+cat > /app/.env << ENVEOF
 APP_NAME="MME Client Portal"
-APP_ENV=${APP_ENV:-production}
-APP_KEY=${APP_KEY}
-APP_DEBUG=${APP_DEBUG:-false}
-APP_URL=${APP_URL:-http://localhost}
-LOG_CHANNEL=stack
-LOG_LEVEL=error
+APP_ENV=production
+APP_KEY=$APP_KEY
+APP_DEBUG=true
+APP_URL=$APP_URL
+LOG_CHANNEL=errorlog
 DB_CONNECTION=mysql
-DB_HOST=${DB_HOST}
+DB_HOST=$DB_HOST
 DB_PORT=${DB_PORT:-3306}
-DB_DATABASE=${DB_DATABASE}
-DB_USERNAME=${DB_USERNAME}
-DB_PASSWORD=${DB_PASSWORD}
-CACHE_DRIVER=file
+DB_DATABASE=$DB_DATABASE
+DB_USERNAME=$DB_USERNAME
+DB_PASSWORD=$DB_PASSWORD
+CACHE_DRIVER=array
 QUEUE_CONNECTION=sync
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-MAIL_MAILER=smtp
-MAIL_HOST=${MAIL_HOST:-mail.mmedigital.ca}
-MAIL_PORT=${MAIL_PORT:-587}
-MAIL_USERNAME=${MAIL_USERNAME:-creative@mmedigital.ca}
-MAIL_PASSWORD=${MAIL_PASSWORD}
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-creative@mmedigital.ca}
-MAIL_FROM_NAME="MME Digital"
-NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL:-creative@mmedigital.ca}
+SESSION_DRIVER=cookie
 FILESYSTEM_DISK=local
-EOF
+ENVEOF
 
-echo "PORT: ${PORT}"
-echo "Clearing config..."
+echo "=== .env written ==="
 php artisan config:clear
-
-echo "Running migrations..."
-php artisan migrate --force --seed
-
-echo "Starting server on port ${PORT:-8080}..."
-exec php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
+php artisan migrate --force
+echo "=== Starting server on $PORT ==="
+php artisan serve --host=0.0.0.0 --port=${PORT:-8080}

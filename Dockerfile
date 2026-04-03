@@ -1,7 +1,5 @@
 FROM php:8.2-cli
 
-ARG CACHE_BUST=8
-
 RUN apt-get update && apt-get install -y \
     curl zip unzip git \
     libpq-dev \
