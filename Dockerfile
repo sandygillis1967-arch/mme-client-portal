@@ -1,6 +1,7 @@
 FROM php:8.2-cli
 
-# Install system dependencies including libonig-dev for mbstring
+ARG CACHE_BUST=1
+
 RUN apt-get update && apt-get install -y \
     curl zip unzip git \
     libpq-dev \
