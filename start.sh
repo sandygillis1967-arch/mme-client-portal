@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "=== Writing .env ==="
+# Write .env from Railway environment variables
 cat > /var/www/html/.env << ENVEOF
 APP_NAME="MME Client Portal"
 APP_ENV=production
@@ -21,34 +21,9 @@ FILESYSTEM_DISK=local
 NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL:-creative@mmedigital.ca}
 ENVEOF
 
-echo "=== .env written ==="
-echo "=== PORT=$PORT ==="
-
 cd /var/www/html
+php artisan config:clear
+php artisan migrate --force
 
-echo "=== Clearing config ==="
-php artisan config:clear 2>&1
-
-echo "=== Running migrations ==="
-php artisan migrate --force 2>&1
-
-echo "=== Configuring Apache ==="
-echo "Listen ${PORT:-80}" > /etc/apache2/ports.conf
-
-cat > /etc/apache2/sites-available/000-default.conf << APACHEEOF
-<VirtualHost *:${PORT:-80}>
-    DocumentRoot /var/www/html/public
-    <Directory /var/www/html/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-    ErrorLog /dev/stderr
-    CustomLog /dev/stdout combined
-</VirtualHost>
-APACHEEOF
-
-echo "=== Testing Apache config ==="
-apache2ctl configtest 2>&1
-
-echo "=== Starting Apache ==="
-apache2ctl -D FOREGROUND 2>&1
+# Run PHP built-in server directly - no Apache
+php -S 0.0.0.0:${PORT:-80} public/index.php
